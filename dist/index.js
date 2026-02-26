@@ -119,7 +119,7 @@ async function processJob(job) {
         jobDescription: job_description,
         experienceLevel: experience_level,
     };
-    const { result, usage, model } = await withTimeout((0, analyzeResume_1.analyzeResume)(input), 60_000);
+    const { result, usage, model, metadata } = await withTimeout((0, analyzeResume_1.analyzeResume)(input), 60_000);
     if (!validateResult(result)) {
         throw new Error('Invalid LLM response format');
     }
@@ -135,6 +135,8 @@ async function processJob(job) {
         output_tokens: usage?.output_tokens,
         model: model,
         result: result,
+        prompt_version: metadata.prompt_version,
+        duration_ms: metadata?.duration_ms,
     })
         .eq('id', job.id);
     log('JOB_COMPLETED', {

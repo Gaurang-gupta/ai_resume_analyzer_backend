@@ -156,7 +156,7 @@ async function processJob(job: AnalysisRow) {
         experienceLevel: experience_level,
     }
 
-    const {result, usage, model} = await withTimeout(
+    const {result, usage, model, metadata} = await withTimeout(
         analyzeResume(input),
         60_000
     )
@@ -178,6 +178,8 @@ async function processJob(job: AnalysisRow) {
             output_tokens: usage?.output_tokens,
             model: model,
             result: result,
+            prompt_version: metadata.prompt_version,
+            duration_ms: metadata?.duration_ms,
         })
         .eq('id', job.id)
 

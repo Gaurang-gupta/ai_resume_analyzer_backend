@@ -28,9 +28,12 @@ const LLMAnalysisSchema = zod_1.z.object({
     strengths: zod_1.z.array(zod_1.z.string()),
     recommendations: zod_1.z.array(zod_1.z.string())
 });
+const MODEL_ID = "gemini-2.5-flash";
+const PROMPT_VERSION = "resume-eval-v1.0.0";
 async function analyzeResumeWithLLM(params) {
     const { resumeText, jobTitle, jobDescription, experienceLevel } = params;
     const currentDatetime = new Date().toISOString();
+    const start = Date.now();
     const systemPrompt = `
         You are a strict ATS resume evaluator.
        
@@ -89,11 +92,13 @@ async function analyzeResumeWithLLM(params) {
             recommendations: string[];
         }
     `;
+    const duration_ms = Date.now() - start;
     const response = await (0, ai_1.generateObject)({
-        model: (0, google_1.google)("gemini-2.5-flash"),
+        model: (0, google_1.google)(MODEL_ID),
         schema: LLMAnalysisSchema,
         system: systemPrompt,
         prompt: userPrompt,
+        temperature: 0,
     });
     const { object, usage } = response;
     return {
@@ -103,5 +108,9 @@ async function analyzeResumeWithLLM(params) {
             output_tokens: usage.outputTokens,
         },
         model: response.response.modelId ?? "gemini-2.5-flash",
+        metadata: {
+            prompt_version: PROMPT_VERSION,
+            duration_ms: duration_ms
+        }
     };
 }

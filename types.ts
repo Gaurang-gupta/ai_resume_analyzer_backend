@@ -55,4 +55,8 @@ export interface AnalyzeResumeResponse {
         output_tokens?: number;
     };
     model?: string;
+    metadata: {
+        prompt_version: string;
+        duration_ms: number;
+    }
 }
