@@ -1,14 +1,12 @@
-import { AnalysisInput, AnalysisResult } from './types';
+import {AnalysisInput, AnalyzeResumeResponse} from './types';
 import { analyzeResumeWithLLM } from './llmClient'; // your GPT wrapper
 
-export async function analyzeResume(input: AnalysisInput): Promise<AnalysisResult> {
+export async function analyzeResume(input: AnalysisInput): Promise<AnalyzeResumeResponse> {
     const { resumeText, jobTitle, jobDescription, experienceLevel } = input;
-    const result = await analyzeResumeWithLLM({
+    return await analyzeResumeWithLLM({
         resumeText,
         jobTitle,
         jobDescription,
         experienceLevel,
     })
-
-    return result;
 }

@@ -47,3 +47,12 @@ export interface AnalysisResult {
     strengths: string[];
     recommendations: string[];
 }
+
+export interface AnalyzeResumeResponse {
+    result: AnalysisResult;
+    usage?: {
+        input_tokens?: number;
+        output_tokens?: number;
+    };
+    model?: string;
+}

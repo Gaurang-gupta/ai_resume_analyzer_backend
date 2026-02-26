@@ -89,12 +89,19 @@ async function analyzeResumeWithLLM(params) {
             recommendations: string[];
         }
     `;
-    const { object } = await (0, ai_1.generateObject)({
+    const response = await (0, ai_1.generateObject)({
         model: (0, google_1.google)("gemini-2.5-flash"),
         schema: LLMAnalysisSchema,
         system: systemPrompt,
         prompt: userPrompt,
     });
-    console.log(object);
-    return object;
+    const { object, usage } = response;
+    return {
+        result: object,
+        usage: {
+            input_tokens: usage.inputTokens,
+            output_tokens: usage.outputTokens,
+        },
+        model: response.response.modelId ?? "gemini-2.5-flash",
+    };
 }

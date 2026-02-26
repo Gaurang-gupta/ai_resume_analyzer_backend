@@ -1,7 +1,7 @@
 import { generateObject } from "ai";
 import { google } from "@ai-sdk/google";
 import { z } from "zod";
-import { AnalysisResult } from "./types";
+import { AnalyzeResumeResponse } from "./types";
 
 const LLMAnalysisSchema = z.object({
     overallScore: z.number().min(0).max(100),
@@ -33,7 +33,7 @@ export async function analyzeResumeWithLLM(params: {
     jobTitle: string;
     jobDescription: string;
     experienceLevel: string;
-}): Promise<AnalysisResult> {
+}): Promise<AnalyzeResumeResponse> {
 
     const { resumeText, jobTitle, jobDescription, experienceLevel } = params;
     const currentDatetime = new Date().toISOString();
@@ -99,13 +99,21 @@ export async function analyzeResumeWithLLM(params: {
     `;
 
 
-    const { object } = await generateObject({
+    const response = await generateObject({
         model: google("gemini-2.5-flash"),
         schema: LLMAnalysisSchema,
         system: systemPrompt,
         prompt: userPrompt,
     });
 
-    console.log(object);
-    return object;
+    const { object, usage } = response
+
+    return {
+        result: object,
+        usage: {
+            input_tokens: usage.inputTokens,
+            output_tokens: usage.outputTokens,
+        },
+        model: response.response.modelId ?? "gemini-2.5-flash",
+    };
 }

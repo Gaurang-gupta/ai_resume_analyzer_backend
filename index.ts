@@ -1,202 +1,3 @@
-// import 'dotenv/config'
-// import { createClient } from '@supabase/supabase-js'
-// import pdf from 'pdf-parse'
-// import { analyzeResume } from './analyzeResume';
-// import {AnalysisInput, AnalysisRow} from './types';
-//
-// // analyses
-// const supabase = createClient(
-//     process.env.SUPABASE_URL as string,
-//     process.env.SUPABASE_SERVICE_ROLE_KEY as string
-// )
-//
-// async function claimNextJob(): Promise<AnalysisRow | null> {
-//     const { data: jobs, error } = await supabase
-//         .from('analyses')
-//         .select(`
-//             *,
-//             id,
-//             resume_id,
-//             job_title,
-//             job_description,
-//             experience_level,
-//             resumes ( storage_path )
-//         `)
-//         .eq('status', 'queued')
-//         .order('created_at', { ascending: true })
-//         .limit(1)
-//
-//     if (error || !jobs || jobs.length === 0) {
-//         return null
-//     }
-//
-//     const job = jobs[0] as AnalysisRow
-//
-//     // 🔥 atomic claim attempt
-//     const { data: claimed, error: claimError } = await supabase
-//         .from('analyses')
-//         .update({
-//             status: 'processing',
-//             started_at: new Date().toISOString()
-//         })
-//         .eq('id', job.id)
-//         .eq('status', 'queued') // important
-//         .select()
-//         .single()
-//
-//     if (claimError || !claimed) {
-//         return null // someone else claimed it
-//     }
-//
-//     return job
-// }
-//
-// async function run() {
-//     console.log('Worker started...')
-//     const job = await claimNextJob()
-//     if (!job) {
-//         console.log('No queued jobs.')
-//         return
-//     }
-//
-//     const jobTitle = job.job_title
-//     const jobDescription = job.job_description
-//     const experienceLevel= job.experience_level
-//     if (!jobTitle || !jobDescription || !experienceLevel) {
-//         console.error('Missing required analysis fields');
-//         await supabase
-//             .from('analyses')
-//             .update({ status: 'failed' })
-//             .eq('id', job.id);
-//         return;
-//     }
-//
-//     console.log('Claiming job:', job.id)
-//
-//     // 2. Mark processing
-//     const { error: claimError } = await supabase
-//         .from('analyses')
-//         .update({
-//             status: 'processing',
-//             started_at: new Date().toISOString()
-//         })
-//         .eq('id', job.id)
-//
-//     if (claimError) {
-//         console.error('Failed to claim job:', claimError.message)
-//         return
-//     }
-//
-//     try {
-//         console.log('Processing job...')
-//         let resumeText: string | null
-//         const { data: resumeRow } = await supabase
-//             .from("resumes")
-//             .select("resume_text")
-//             .eq("id", job.resume_id)
-//             .single()
-//
-//         resumeText = resumeRow?.resume_text ?? null
-//         const bucketName = 'resumes' // change if your bucket is named differently
-//
-//         if(!resumeText) {
-//             const {data: fileData, error: fileError} =
-//                 await supabase.storage
-//                     .from(bucketName)
-//                     .download(job.resumes.storage_path)
-//
-//
-//             if (fileError || !fileData) {
-//                 throw new Error('Failed to download resume file')
-//             }
-//             console.log(job.resumes.storage_path)
-//
-//             const buffer = Buffer.from(await fileData.arrayBuffer())
-//             const result = await pdf(buffer)
-//             resumeText = result.text
-//             // updating resume_text field
-//             const {error: resumeError} = await supabase
-//                 .from("resumes")
-//                 .update({
-//                     resume_text: resumeText,
-//                     text_extracted_at: new Date().toISOString()
-//                 })
-//                 .eq('id', job.resume_id)
-//
-//             if(resumeError) {
-//                 throw new Error("Failed to store resume text from the file")
-//             }
-//         }
-//         const input: AnalysisInput = {
-//             resumeText: resumeText,
-//             jobTitle: jobTitle,
-//             jobDescription: jobDescription,
-//             experienceLevel: experienceLevel // from analyses table
-//         };
-//         if (!resumeText || resumeText.trim().length === 0) {
-//             throw new Error('Failed to extract text from PDF')
-//         }
-//
-//         const analyzeResult = await analyzeResume(input)
-//
-//         // 3. Mark completed
-//         if (!resumeText || resumeText.trim().length < 100) {
-//             throw new Error("Extracted text too short")
-//         }
-//         const { error: completeError } = await supabase
-//             .from('analyses')
-//             .update({
-//                 status: 'completed',
-//                 completed_at: new Date().toISOString(),
-//                 result: analyzeResult
-//             })
-//             .eq('id', job.id)
-//
-//         console.log({
-//             jobId: job.id,
-//             extractedLength: resumeText.length,
-//             status: "completed"
-//         })
-//
-//         if (completeError) {
-//             throw new Error(completeError.message)
-//         }
-//
-//         console.log('Job completed.')
-//     } catch (err: unknown) {
-//         const errorMessage =
-//             err instanceof Error ? err.message : 'Unknown error'
-//
-//         console.error('Processing failed:', errorMessage)
-//         if (errorMessage.includes("429")) {
-//             console.error("Quota exceeded. Stopping worker.");
-//             process.exit(1);
-//         }
-//
-//         await supabase
-//             .from('analyses')
-//             .update({
-//                 status: 'failed',
-//                 failed_at: new Date().toISOString(),
-//                 error_message: errorMessage
-//             })
-//             .eq('id', job.id)
-//     }
-// }
-//
-// async function processLoop() {
-//     while (true) {
-//         await run()
-//
-//         // wait 30 minutes before checking again
-//         const time = 1000
-//         await new Promise(resolve => setTimeout(resolve, time))
-//     }
-// }
-//
-// processLoop()
-
-
 import 'dotenv/config'
 import { createClient } from '@supabase/supabase-js'
 import pdf from 'pdf-parse'
@@ -295,6 +96,7 @@ async function claimNextJob(): Promise<AnalysisRow | null> {
 
 async function processJob(job: AnalysisRow) {
     log('JOB_STARTED', { jobId: job.id })
+    const started_at = new Date().toISOString();
 
     const { job_title, job_description, experience_level } = job
 
@@ -354,29 +156,34 @@ async function processJob(job: AnalysisRow) {
         experienceLevel: experience_level,
     }
 
-    const analyzeResult = await withTimeout(
+    const {result, usage, model} = await withTimeout(
         analyzeResume(input),
         60_000
     )
 
-    if (!validateResult(analyzeResult)) {
+    if (!validateResult(result)) {
         throw new Error('Invalid LLM response format')
     }
 
     /* ---------- COMPLETE ---------- */
 
+    console.log(usage)
     await supabase
         .from('analyses')
         .update({
             status: 'completed',
+            started_at: started_at,
             completed_at: new Date().toISOString(),
-            result: analyzeResult,
+            input_tokens: usage?.input_tokens,
+            output_tokens: usage?.output_tokens,
+            model: model,
+            result: result,
         })
         .eq('id', job.id)
 
     log('JOB_COMPLETED', {
         jobId: job.id,
-        score: analyzeResult.overallScore,
+        score: result.overallScore,
     })
 }
 
