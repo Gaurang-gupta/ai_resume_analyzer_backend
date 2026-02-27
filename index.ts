@@ -54,44 +54,6 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 
 /* ----------------------------- JOB CLAIM ----------------------------- */
 
-// async function claimNextJob(): Promise<AnalysisRow | null> {
-//     const { data: jobs, error } = await supabase
-//         .from('analyses')
-//         .select(
-//             `
-//       *,
-//       resumes ( storage_path )
-//     `
-//         )
-//         .eq('status', 'queued')
-//         .order('created_at', { ascending: true })
-//         .limit(1)
-//
-//     if (error || !jobs || jobs.length === 0) {
-//         return null
-//     }
-//
-//     const job = jobs[0] as AnalysisRow
-//
-//     // atomic claim
-//     const { data: claimed } = await supabase
-//         .from('analyses')
-//         .update({
-//             status: 'processing',
-//             started_at: new Date().toISOString(),
-//         })
-//         .eq('id', job.id)
-//         .eq('status', 'queued')
-//         .select()
-//         .single()
-//
-//     if (!claimed) {
-//         return null
-//     }
-//
-//     return job
-// }
-
 async function claimNextJob(): Promise<AnalysisRow | null> {
     const { data, error } = await supabase.rpc(
         'claim_next_analysis_job'
