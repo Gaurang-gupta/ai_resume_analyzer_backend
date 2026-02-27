@@ -96,7 +96,7 @@ async function claimNextJob(): Promise<AnalysisRow | null> {
 
 async function processJob(job: AnalysisRow) {
     log('JOB_STARTED', { jobId: job.id })
-    const started_at = new Date().toISOString();
+    // const started_at = new Date().toISOString();
 
     const { job_title, job_description, experience_level } = job
 
@@ -167,12 +167,11 @@ async function processJob(job: AnalysisRow) {
 
     /* ---------- COMPLETE ---------- */
 
-    console.log(usage, metadata)
+    log("LLM_METADATA", {usage, metadata})
     await supabase
         .from('analyses')
         .update({
             status: 'completed',
-            started_at: started_at,
             completed_at: new Date().toISOString(),
             input_tokens: usage?.input_tokens,
             output_tokens: usage?.output_tokens,

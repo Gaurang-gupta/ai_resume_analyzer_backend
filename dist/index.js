@@ -75,7 +75,7 @@ async function claimNextJob() {
 /* ----------------------------- PROCESS JOB ----------------------------- */
 async function processJob(job) {
     log('JOB_STARTED', { jobId: job.id });
-    const started_at = new Date().toISOString();
+    // const started_at = new Date().toISOString();
     const { job_title, job_description, experience_level } = job;
     if (!job_title || !job_description || !experience_level) {
         throw new Error('Missing required analysis fields');
@@ -124,12 +124,11 @@ async function processJob(job) {
         throw new Error('Invalid LLM response format');
     }
     /* ---------- COMPLETE ---------- */
-    console.log(usage, metadata);
+    log("LLM_METADATA", { usage, metadata });
     await supabase
         .from('analyses')
         .update({
         status: 'completed',
-        started_at: started_at,
         completed_at: new Date().toISOString(),
         input_tokens: usage?.input_tokens,
         output_tokens: usage?.output_tokens,
