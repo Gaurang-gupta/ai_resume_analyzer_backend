@@ -124,7 +124,7 @@ async function processJob(job) {
         throw new Error('Invalid LLM response format');
     }
     /* ---------- COMPLETE ---------- */
-    console.log(usage);
+    console.log(usage, metadata);
     await supabase
         .from('analyses')
         .update({

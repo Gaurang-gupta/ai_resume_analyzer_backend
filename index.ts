@@ -167,7 +167,7 @@ async function processJob(job: AnalysisRow) {
 
     /* ---------- COMPLETE ---------- */
 
-    console.log(usage)
+    console.log(usage, metadata)
     await supabase
         .from('analyses')
         .update({
