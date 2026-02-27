@@ -92,7 +92,6 @@ async function analyzeResumeWithLLM(params) {
             recommendations: string[];
         }
     `;
-    const duration_ms = Date.now() - start;
     const response = await (0, ai_1.generateObject)({
         model: (0, google_1.google)(MODEL_ID),
         schema: LLMAnalysisSchema,
@@ -100,6 +99,7 @@ async function analyzeResumeWithLLM(params) {
         prompt: userPrompt,
         temperature: 0,
     });
+    const duration_ms = Date.now() - start;
     const { object, usage } = response;
     return {
         result: object,

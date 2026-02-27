@@ -101,7 +101,6 @@ export async function analyzeResumeWithLLM(params: {
         }
     `;
 
-    const duration_ms = Date.now() - start;
     const response = await generateObject({
         model: google(MODEL_ID),
         schema: LLMAnalysisSchema,
@@ -111,6 +110,7 @@ export async function analyzeResumeWithLLM(params: {
     });
 
 
+    const duration_ms = Date.now() - start;
     const { object, usage } = response
 
     return {
