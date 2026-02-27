@@ -6,9 +6,9 @@ export interface AnalysisRow {
     job_description: string;
     resume_id: string;
     experience_level: 'student' | '0-2' | '3-5' | '6+' | 'career_switcher';
-    resumes: {
+    // resumes: {
         storage_path: string;
-    };
+    // };
 }
 
 export interface AnalysisInput {

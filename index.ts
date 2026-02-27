@@ -92,14 +92,14 @@ async function processJob(job: AnalysisRow) {
     let resumeText = resumeRow?.resume_text ?? null
 
     if (!resumeText) {
-        if (!job.resumes?.storage_path) {
+        if (!job?.storage_path) {
             throw new Error('Missing storage path')
         }
 
         const { data: fileData, error: fileError } =
             await supabase.storage
                 .from('resumes')
-                .download(job.resumes.storage_path)
+                .download(job.storage_path)
 
         if (fileError || !fileData) {
             throw new Error('Failed to download resume file')
