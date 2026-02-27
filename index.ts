@@ -54,49 +54,64 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 
 /* ----------------------------- JOB CLAIM ----------------------------- */
 
+// async function claimNextJob(): Promise<AnalysisRow | null> {
+//     const { data: jobs, error } = await supabase
+//         .from('analyses')
+//         .select(
+//             `
+//       *,
+//       resumes ( storage_path )
+//     `
+//         )
+//         .eq('status', 'queued')
+//         .order('created_at', { ascending: true })
+//         .limit(1)
+//
+//     if (error || !jobs || jobs.length === 0) {
+//         return null
+//     }
+//
+//     const job = jobs[0] as AnalysisRow
+//
+//     // atomic claim
+//     const { data: claimed } = await supabase
+//         .from('analyses')
+//         .update({
+//             status: 'processing',
+//             started_at: new Date().toISOString(),
+//         })
+//         .eq('id', job.id)
+//         .eq('status', 'queued')
+//         .select()
+//         .single()
+//
+//     if (!claimed) {
+//         return null
+//     }
+//
+//     return job
+// }
+
 async function claimNextJob(): Promise<AnalysisRow | null> {
-    const { data: jobs, error } = await supabase
-        .from('analyses')
-        .select(
-            `
-      *,
-      resumes ( storage_path )
-    `
-        )
-        .eq('status', 'queued')
-        .order('created_at', { ascending: true })
-        .limit(1)
+    const { data, error } = await supabase.rpc(
+        'claim_next_analysis_job'
+    )
 
-    if (error || !jobs || jobs.length === 0) {
+    if (error) {
+        throw new Error(`Claim failed: ${error.message}`)
+    }
+
+    if (!data || data.length === 0) {
         return null
     }
 
-    const job = jobs[0] as AnalysisRow
-
-    // atomic claim
-    const { data: claimed } = await supabase
-        .from('analyses')
-        .update({
-            status: 'processing',
-            started_at: new Date().toISOString(),
-        })
-        .eq('id', job.id)
-        .eq('status', 'queued')
-        .select()
-        .single()
-
-    if (!claimed) {
-        return null
-    }
-
-    return job
+    return data[0] as AnalysisRow
 }
 
 /* ----------------------------- PROCESS JOB ----------------------------- */
 
 async function processJob(job: AnalysisRow) {
     log('JOB_STARTED', { jobId: job.id })
-    // const started_at = new Date().toISOString();
 
     const { job_title, job_description, experience_level } = job
 
@@ -168,13 +183,13 @@ async function processJob(job: AnalysisRow) {
     /* ---------- COMPLETE ---------- */
 
     log("LLM_METADATA", {usage, metadata})
-    await supabase
+    const { error } = await supabase
         .from('analyses')
         .update({
             status: 'completed',
             completed_at: new Date().toISOString(),
-            input_tokens: usage?.input_tokens,
-            output_tokens: usage?.output_tokens,
+            input_tokens: usage?.input_tokens ?? 0,
+            output_tokens: usage?.output_tokens ?? 0,
             model: model,
             result: result,
             prompt_version: metadata.prompt_version,
@@ -182,6 +197,9 @@ async function processJob(job: AnalysisRow) {
         })
         .eq('id', job.id)
 
+    if (error) {
+        throw new Error(`Failed to update analysis: ${error.message}`)
+    }
     log('JOB_COMPLETED', {
         jobId: job.id,
         score: result.overallScore,
