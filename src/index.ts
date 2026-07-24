@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { createClient } from '@supabase/supabase-js'
 import pdf from 'pdf-parse'
-import { analyzeResume } from './analyzeResume'
+import { analyzeResume } from "./analyzeResume";
 import { AnalysisInput, AnalysisRow } from './types'
 
 const supabase = createClient(

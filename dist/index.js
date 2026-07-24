@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv/config");
 const supabase_js_1 = require("@supabase/supabase-js");
-const pdf_parse_1 = __importDefault(require("pdf-parse"));
+const pdf_parse_js_1 = __importDefault(require("pdf-parse/lib/pdf-parse.js"));
 const analyzeResume_1 = require("./analyzeResume");
 const supabase = (0, supabase_js_1.createClient)(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 /* ----------------------------- UTILITIES ----------------------------- */
@@ -77,7 +77,7 @@ async function processJob(job) {
             throw new Error('Failed to download resume file');
         }
         const buffer = Buffer.from(await fileData.arrayBuffer());
-        const result = await (0, pdf_parse_1.default)(buffer);
+        const result = await (0, pdf_parse_js_1.default)(buffer);
         resumeText = result.text;
         if (!resumeText || resumeText.trim().length < 100) {
             throw new Error('Extracted text too short');
