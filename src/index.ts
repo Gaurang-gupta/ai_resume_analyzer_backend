@@ -226,22 +226,30 @@ async function run(): Promise<boolean> {
     }
 }
 
-async function processLoop() {
-    let idleDelay = 1000
+// async function processLoop() {
+//     let idleDelay = 1000
+//
+//     log('WORKER_STARTED')
+//
+//     while (true) {
+//         const processed = await run()
+//
+//         if (processed) {
+//             idleDelay = 1000
+//         } else {
+//             idleDelay = Math.min(idleDelay * 2, 30000)
+//         }
+//
+//         await new Promise((res) => setTimeout(res, idleDelay))
+//     }
+// }
+//
+// processLoop()
 
-    log('WORKER_STARTED')
-
-    while (true) {
-        const processed = await run()
-
-        if (processed) {
-            idleDelay = 1000
-        } else {
-            idleDelay = Math.min(idleDelay * 2, 30000)
-        }
-
-        await new Promise((res) => setTimeout(res, idleDelay))
+export default async function handler(req: any, res: any) {
+    try {
+        run()
+    } catch (err: any) {
+        return res.status(500).json({ error: err.message })
     }
 }
-
-processLoop()
